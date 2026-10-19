@@ -1,6 +1,6 @@
 # Aurora Nights
 
-Ein realistischer, aber bewusst "minecraftiger" Shader für **Minecraft Java Edition 26.2**, gebaut für **Iris** (empfohlen) oder **OptiFine**.
+Ein realistischer, aber bewusst "minecraftiger" Shader für **Minecraft Java Edition 26.3**, gebaut für **Iris** (empfohlen) oder **OptiFine**.
 
 Fokus:
 - weiche Richtungsschatten (Sonne/Mond) über eine echte Shadow Map, jetzt mit **Hardware-PCF** (`sampler2DShadow`/`shadow2D`) statt manueller Tiefenvergleiche - günstiger *und* weicher
@@ -116,7 +116,7 @@ Ich konnte diesen Shader in dieser Umgebung **nicht in Minecraft/Iris kompiliere
 
 **Neu seit der zweiten Überarbeitung:** Jetzt wurde tatsächlich kompiliert - nicht im Spiel, aber mit dem offiziellen Khronos-Referenz-Compiler **glslangValidator 16.6.0**. Ein kleines Prüfskript löst dafür die Iris-`#include`s auf, wendet jedes der vier Profile genau so auf den Quelltext an, wie Iris es tut (Schalter aus-/einkommentieren, Werte ersetzen), und kompiliert dann jede Stufe in allen drei Dimensionen: **58 Stufen × 4 Profile = 232 Kompilierungen, alle fehlerfrei und ohne Warnungen.** Zusätzlich wurde im vorverarbeiteten Code stichprobenartig geprüft, dass die richtigen Pfade aktiv sind (Nether ohne Schatten-Code, Polarlicht nur ab `MEDIUM`, kein Wind auf `POTATO`, ...).
 
-Was das **nicht** abdeckt: alles, was nur Iris selbst weiß - ob `block.properties` so gelesen wird wie gedacht, ob jede Option im Menü auftaucht, ob die Uniforms (`heldBlockLightValue`, `entityColor`, `darknessFactor`, ...) in Minecraft 26.2 befüllt werden, und natürlich wie es aussieht und wie schnell es läuft.
+Was das **nicht** abdeckt: alles, was nur Iris selbst weiß - ob `block.properties` so gelesen wird wie gedacht, ob jede Option im Menü auftaucht, ob die Uniforms (`heldBlockLightValue`, `entityColor`, `darknessFactor`, ...) in Minecraft 26.3 befüllt werden, und natürlich wie es aussieht und wie schnell es läuft.
 
 **Bitte beim ersten Laden im Spiel kurz gegenchecken:**
 - Lädt der Pack ohne Fehlermeldung im Shader-Auswahlmenü?
