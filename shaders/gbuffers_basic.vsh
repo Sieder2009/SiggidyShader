@@ -1,8 +1,5 @@
 #version 120
 
-varying vec4 vColor;
-
-void main() {
-    gl_Position = ftransform();
-    vColor = gl_Color;
-}
+// Overworld (and any modded dimension). The code lives in program/gbuffers_basic_vertex.glsl.
+#define AURORA_WORLD 0
+#include "/program/gbuffers_basic_vertex.glsl"

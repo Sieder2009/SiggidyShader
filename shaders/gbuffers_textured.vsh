@@ -1,12 +1,5 @@
 #version 120
 
-varying vec2 texcoord;
-varying vec4 vColor;
-varying vec3 viewPos;
-
-void main() {
-    gl_Position = ftransform();
-    texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    vColor = gl_Color;
-    viewPos = (gl_ModelViewMatrix * gl_Vertex).xyz;
-}
+// Overworld (and any modded dimension). The code lives in program/gbuffers_textured_vertex.glsl.
+#define AURORA_WORLD 0
+#include "/program/gbuffers_textured_vertex.glsl"

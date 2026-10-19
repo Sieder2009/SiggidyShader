@@ -1,8 +1,5 @@
 #version 120
 
-varying vec2 texcoord;
-
-void main() {
-    gl_Position = ftransform();
-    texcoord = gl_MultiTexCoord0.xy;
-}
+// Overworld (and any modded dimension). The code lives in program/final_vertex.glsl.
+#define AURORA_WORLD 0
+#include "/program/final_vertex.glsl"

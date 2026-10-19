@@ -1,22 +1,5 @@
 #version 120
 
-#include "/lib/common.glsl"
-
-uniform sampler2D tex;
-
-varying vec2 texcoord;
-varying vec2 lmcoord;
-varying vec4 vColor;
-varying vec3 viewPos;
-varying vec3 viewNormal;
-
-void main() {
-    vec4 albedo = texture2D(tex, texcoord) * vColor;
-    if (albedo.a < 0.1) discard;
-
-    vec3 N = normalize(viewNormal);
-    vec3 color = shadeLit(albedo.rgb, N, viewPos, lmcoord);
-    color = applyFog(color, viewPos);
-
-    gl_FragColor = vec4(color, albedo.a);
-}
+// Overworld (and any modded dimension). The code lives in program/gbuffers_entities_fragment.glsl.
+#define AURORA_WORLD 0
+#include "/program/gbuffers_entities_fragment.glsl"
