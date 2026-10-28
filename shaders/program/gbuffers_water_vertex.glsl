@@ -34,4 +34,5 @@ void main() {
     worldPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
     topFace = step(0.5, gl_Normal.y);
     vIsWater = (int(mc_Entity.x + 0.5) == ID_WATER) ? 1.0 : 0.0;
+    gl_Position = taaJitter(gl_Position); // TAA sub-pixel shift (common.glsl)
 }

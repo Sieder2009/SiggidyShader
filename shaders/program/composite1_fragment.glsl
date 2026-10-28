@@ -19,6 +19,8 @@
 #define EXPOSURE 1.05    // [0.7 0.8 0.9 1.0 1.05 1.1 1.2 1.3 1.5]
 #define SATURATION 1.12  // [0.8 0.9 1.0 1.1 1.12 1.2 1.3]
 
+#define UNDERWATER_WOBBLE // The picture gently wobbles while your head is under water.
+
 #ifdef ENABLE_BLOOM
 // Tells Iris/OptiFine to (re)generate colortex0's mip chain from this
 // frame's content before this stage runs - getBloom() below is the only
@@ -62,15 +64,27 @@ vec3 getBloom(vec2 uv) {
 #endif
 
 void main() {
-    vec3 color = texture2D(colortex0, texcoord).rgb;
+    vec2 uv = texcoord;
+#ifdef UNDERWATER_WOBBLE
+    if (isEyeInWater == 1) {
+        // Two slow, crossing sine waves shift where the image is read from
+        // by a fraction of a percent - like looking through moving water.
+        float t = frameTimeCounter * 1.6;
+        uv += vec2(sin(uv.y * 17.0 + t), cos(uv.x * 13.0 + t * 0.8)) * 0.0015;
+        uv = clamp(uv, 0.0, 1.0);
+    }
+#endif
+
+    vec3 color = texture2D(colortex0, uv).rgb;
 
 #ifdef ENABLE_BLOOM
-    color += getBloom(texcoord) * BLOOM_STRENGTH;
+    color += getBloom(uv) * BLOOM_STRENGTH;
 #endif
 
     color *= EXPOSURE;
     color = tonemapACES(color);
     color = adjustSaturation(color, SATURATION);
 
+    /* DRAWBUFFERS:0 */
     gl_FragColor = vec4(color, 1.0);
 }

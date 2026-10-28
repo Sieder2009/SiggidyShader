@@ -14,16 +14,23 @@ varying vec3 viewPos;
 varying vec3 viewNormal;
 varying float vFoliage;  // 1 = plant/leaves (soft, two-sided lighting)
 varying float vEmissive; // see emissiveKindOf() in common.glsl
+varying float vShine;    // see shineOfBlock() in common.glsl (negative = metal)
+varying vec3 worldPos;   // absolute world position (puddle pattern)
+// 1.0 for an upward-facing face, 0.0 otherwise - from the OBJECT-SPACE
+// normal, like topFace in gbuffers_water.vsh. Only these can hold a puddle.
+varying float vUpFace;
 
 void main() {
     texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     lmcoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     vColor   = gl_Color;
     viewNormal = normalize(gl_NormalMatrix * gl_Normal);
+    vUpFace = step(0.5, gl_Normal.y);
 
     int blockId = int(mc_Entity.x + 0.5);
     vFoliage = foliageOf(blockId);
     vEmissive = emissiveKindOf(blockId);
+    vShine = shineOfBlock(blockId);
 
     gl_Position = ftransform();
     viewPos = (gl_ModelViewMatrix * gl_Vertex).xyz;
@@ -38,4 +45,7 @@ void main() {
         viewPos = (gbufferModelView * vec4(playerPos, 1.0)).xyz;
         gl_Position = gl_ProjectionMatrix * vec4(viewPos, 1.0);
     }
+
+    worldPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz + cameraPosition;
+    gl_Position = taaJitter(gl_Position); // TAA sub-pixel shift (common.glsl)
 }

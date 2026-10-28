@@ -9,14 +9,12 @@
 // screen-space antialiasing, vignette and dither, all of which want to run
 // on the final, already-tonemapped LDR image.
 
-#define ENABLE_FXAA // Cheap edge antialiasing on the final image. Off in Low/Potato profiles.
+//#define ENABLE_FXAA // Cheap edge antialiasing on the final image, for when TEMPORAL_AA is too slow or smears. Off in every profile (Medium/High use TAA instead).
 #define FXAA_STRENGTH 0.75 // [0.25 0.5 0.75 1.0]
 
 #define VIGNETTE_STRENGTH 0.25  // [0.0 0.1 0.15 0.2 0.25 0.35 0.5]
 
 uniform sampler2D colortex0;
-uniform float viewWidth;
-uniform float viewHeight;
 
 varying vec2 texcoord;
 
@@ -86,6 +84,19 @@ void main() {
 
 #ifdef ENABLE_FXAA
     color = fxaaLite(texcoord, color);
+#endif
+
+#ifdef AURORA_TAA
+    // TAA softens the picture a little (every pixel is a blend of samples
+    // from slightly different positions). A light unsharp mask - the pixel
+    // minus the average of its four neighbours, added back on - restores the
+    // crispness of the block textures.
+    vec2 texel = 1.0 / vec2(viewWidth, viewHeight);
+    vec3 neighbours = texture2D(colortex0, texcoord + vec2(texel.x, 0.0)).rgb
+                    + texture2D(colortex0, texcoord - vec2(texel.x, 0.0)).rgb
+                    + texture2D(colortex0, texcoord + vec2(0.0, texel.y)).rgb
+                    + texture2D(colortex0, texcoord - vec2(0.0, texel.y)).rgb;
+    color = max(color + (color - neighbours * 0.25) * TAA_SHARPNESS, 0.0);
 #endif
 
     float dist = distance(texcoord, vec2(0.5));

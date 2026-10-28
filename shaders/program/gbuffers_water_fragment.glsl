@@ -8,7 +8,7 @@
 #define WAVE_HEIGHT 0.10   // [0.0 0.05 0.10 0.15 0.20 0.30]
 #define WAVE_SPEED 1.0     // [0.5 0.75 1.0 1.25 1.5]
 #define WATER_OPACITY 0.75 // [0.5 0.6 0.7 0.75 0.8 0.9 1.0]
-#define WATER_SKY_REFLECTION // Water mirrors the real sky (gradient, sun, clouds, stars, aurora) instead of a flat sky tint. Off in the Potato profile.
+// WATER_SKY_REFLECTION is declared in sky.glsl (rain puddles use it too).
 
 uniform sampler2D tex;
 
@@ -58,20 +58,30 @@ void main() {
     vec3 L = normalize(shadowLightPosition);
     vec3 H = normalize(L + viewDir);
     float spec = pow(max(dot(N, H), 0.0), 90.0) * shadowTerm * openSky;
-    color += getDayNightSunColor(sunHeight()) * spec * 1.5;
+    // Same light color and cloud shadow as the direct light in shadeLitCustom().
+    if (spec > 0.0) spec *= cloudShadow(viewPos);
+    float h = sunHeight();
+    color += getDayNightSunColor(h) * moonDimming(h) * spec * 1.5;
 
     float fresnel = pow(1.0 - clamp(dot(N, viewDir), 0.0, 1.0), 5.0);
 
-    vec3 reflection = getSkyAmbient(sunHeight());
+    vec3 reflection = getSkyAmbient(h);
     float reflectivity = 0.55;
-#ifdef WATER_SKY_REFLECTION
     if (isWater) {
+#if defined AURORA_WATER_FOG || defined AURORA_SSR
+        // composite.fsh reflects the sky (and the land) into the water
+        // later, after its depth color - doing it here as well would double
+        // it, and the depth color would paint over this one anyway.
+        reflectivity = 0.0;
+#else
         // reflect() of the view ray is already a VIEW-space direction,
-        // exactly what renderSky() expects.
-        reflection = renderSky(reflect(-viewDir, N));
+        // exactly what reflectedSky() expects. Without WATER_SKY_REFLECTION
+        // that is just the sky gradient - still cheap, and closer to the
+        // real sky than the flat tint glass and ice keep.
+        reflection = reflectedSky(reflect(-viewDir, N));
         reflectivity = 0.8;
-    }
 #endif
+    }
     // Fade the sky reflection out where there's no sky to reflect, and skip
     // it when looking up at the surface from underwater.
     reflection = mix(color, reflection, openSky);
@@ -81,8 +91,15 @@ void main() {
     // Only water gets the fresnel-boosted, WATER_OPACITY-scaled alpha;
     // glass, ice etc. keep their texture's own transparency.
     float alpha = isWater ? clamp(albedo.a + fresnel * 0.3, 0.0, 1.0) * WATER_OPACITY : albedo.a;
+#ifdef AURORA_WATER_FOG
+    // composite.fsh darkens deep water by its real depth, so the surface
+    // itself can be much clearer: shallow water now shows its bottom.
+    if (isWater) alpha *= 0.55;
+#endif
 
     color = applyFog(color, viewPos);
 
-    gl_FragColor = vec4(color, alpha);
+    /* DRAWBUFFERS:02 */
+    gl_FragData[0] = vec4(color, alpha);
+    gl_FragData[1] = surfaceData(N, lmcoord.y, isWater ? MAT_WATER : MAT_GLASS);
 }

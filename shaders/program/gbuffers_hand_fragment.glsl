@@ -23,5 +23,7 @@ void main() {
     vec3 color = shadeLitCustom(albedo.rgb, N, viewPos, lmcoord, 1.0, 0.0);
     color = applyFog(color, viewPos);
 
-    gl_FragColor = vec4(color, albedo.a);
+    /* DRAWBUFFERS:02 */
+    gl_FragData[0] = vec4(color, albedo.a);
+    gl_FragData[1] = surfaceData(N, lmcoord.y, MAT_HAND);
 }

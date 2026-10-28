@@ -8,5 +8,6 @@
 varying vec4 vColor;
 
 void main() {
+    /* DRAWBUFFERS:0 */
     gl_FragColor = vColor;
 }
